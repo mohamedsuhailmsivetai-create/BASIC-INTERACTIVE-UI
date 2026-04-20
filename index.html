@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .navbar .logo { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .navbar .logo span { color: #ffd700; }
+
+    .bottom-tab {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      display: flex;
+      border-top: 1px solid #eee;
+      z-index: 200;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 10px;
+      color: #aaa;
+      transition: color 0.2s;
+    }
+    .tab-btn.active { color: #7f77dd; }
+    .tab-btn .icon { font-size: 20px; }
+
+    .page { display: none; padding: 20px 16px; max-width: 680px; margin: auto; }
+    .page.active { display: block; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .card-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 12px; }
+
+    /* HOME */
+    .welcome-card {
+      background: linear-gradient(135deg, #7f77dd, #534ab7);
+      color: #fff;
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-card::after {
+      content: '📚';
+      position: absolute;
+      right: 16px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 56px;
+      opacity: 0.3;
+    }
+    .welcome-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .welcome-card p  { font-size: 13px; opacity: 0.85; }
+
+    .quote-card {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .quote-card .q-text   { font-size: 14px; font-style: italic; line-height: 1.6; }
+    .quote-card .q-author { font-size: 12px; opacity: 0.8; margin-top: 8px; text-align: right; }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .qs-card { border-radius: 14px; padding: 16px; color: #fff; text-align: center; }
+    .qs-card .qs-val { font-size: 28px; font-weight: 700; }
+    .qs-card .qs-lbl { font-size: 11px; opacity: 0.85; margin-top: 3px; }
+    .qs-blue   { background: linear-gradient(135deg,#43b8f0,#1a7fc1); }
+    .qs-green  { background: linear-gradient(135deg,#56e09b,#1db866); }
+    .qs-orange { background: linear-gradient(135deg,#fda843,#f0720e); }
+    .qs-pink   { background: linear-gradient(135deg,#f093fb,#c850c0); }
+
+    /* ── PROGRESS TEXT (Requirement #2) ── */
+    .progress-text-box {
+      background: linear-gradient(135deg, #eeedfe, #e0deff);
+      border: 1.5px solid #afa9ec;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .progress-text-box .pt-main {
+      font-size: 16px;
+      font-weight: 600;
+      color: #3c3489;
+    }
+    .progress-text-box .pt-sub {
+      font-size: 12px;
+      color: #7f77dd;
+      margin-top: 4px;
+    }
+    .progress-bar-wrap {
+      height: 8px;
+      background: #d5d2f5;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-bar-inner {
+      height: 8px;
+      background: linear-gradient(90deg, #7f77dd, #534ab7);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .tip-list { list-style: none; }
+    .tip-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .tip-list li:last-child { border-bottom: none; }
+    .tip-list li .tip-icon { font-size: 18px; flex-shrink: 0; }
+
+    /* QUICK ADD */
+    .quick-section { margin-bottom: 14px; }
+    .quick-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .quick-row { display: flex; gap: 8px; }
+    .quick-select-wrap { position: relative; flex: 1; }
+    .quick-select-wrap select {
+      width: 100%;
+      height: 42px;
+      padding: 0 36px 0 14px;
+      border: 1.5px solid #afa9ec;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: #534ab7;
+      background: #f0eeff;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s, background 0.2s;
+      font-weight: 500;
+    }
+    .quick-select-wrap select:hover { border-color: #7f77dd; background: #e8e5ff; }
+    .quick-select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: #7f77dd;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .quick-add-btn {
+      height: 42px;
+      padding: 0 16px;
+      background: linear-gradient(135deg, #7f77dd, #534ab7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .quick-add-btn:hover { opacity: 0.88; transform: scale(1.03); }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 1px; background: #eee; }
+    .or-divider span { font-size: 11px; color: #bbb; font-weight: 500; }
+
+    /* TASK INPUT */
+    .add-row { display: flex; gap: 10px; }
+    .add-row input {
+      flex: 1;
+      height: 42px;
+      padding: 0 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      color: #333;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .add-row input:focus { border-color: #7f77dd; }
+    .add-row button {
+      height: 42px;
+      padding: 0 16px;
+      background: #7f77dd;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .add-row button:hover { background: #534ab7; transform: scale(1.03); }
+
+    /* TASK LIST */
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1.5px solid #eee;
+      border-radius: 12px;
+      padding: 11px 14px;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.15s;
+    }
+    .task-item:hover {
+      border-color: #afa9ec;
+      background: #faf9ff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(127,119,221,0.12);
+    }
+    .task-item.done { background: #f9f9f9; border-color: #eee; transform: none; box-shadow: none; }
+
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .task-check:hover { border-color: #7f77dd; }
+    .task-check.checked { background: #7f77dd; border-color: #7f77dd; }
+    .task-check.checked::after {
+      content: '';
+      display: block;
+      width: 5px; height: 9px;
+      border: 2px solid #fff;
+      border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px,-1px);
+    }
+    .task-name { flex: 1; font-size: 13px; color: #333; }
+    .task-name.done-text { text-decoration: line-through; color: #aaa; }
+
+    /* ── STATUS LABEL (Requirement #5) ── */
+    .status-label {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .status-pending   { background: #fff3e0; color: #e65100; }
+    .status-completed { background: #e8f5e9; color: #2e7d32; }
+
+    .del-btn {
+      width: 24px; height: 24px;
+      border: none; background: none;
+      cursor: pointer; color: #ccc;
+      font-size: 18px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .del-btn:hover { color: #e24b4a; background: #fdf0f0; }
+    .empty-hint { text-align: center; padding: 2rem 1rem; color: #bbb; font-size: 13px; }
+
+    .reward-banner {
+      display: none;
+      text-align: center;
+      padding: 14px;
+      background: #eeedfe;
+      border: 1px solid #afa9ec;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      animation: fadeIn 0.4s ease;
+    }
+    .reward-banner.show { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reward-banner .rw-title { font-size: 15px; font-weight: 600; color: #3c3489; }
+    .reward-banner .rw-sub   { font-size: 12px; color: #534ab7; margin-top: 3px; }
+
+    /* DASHBOARD */
+    .dash-header {
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      border-radius: 20px;
+      padding: 22px 20px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .dash-header h2 { font-size: 18px; font-weight: 700; }
+    .dash-header p  { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+    .progress-wrap { margin-bottom: 10px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 5px; }
+    .progress-bar-bg { height: 10px; background: #f0f0f0; border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill { height: 10px; border-radius: 99px; transition: width 0.5s ease; }
+    .fill-purple { background: linear-gradient(90deg,#7f77dd,#534ab7); }
+    .fill-green  { background: linear-gradient(90deg,#38ef7d,#11998e); }
+    .fill-orange { background: linear-gradient(90deg,#fda843,#f0720e); }
+
+    .badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .badge-item { text-align: center; padding: 10px 6px; border-radius: 12px; background: #f8f8ff; font-size: 24px; }
+    .badge-item .b-lbl { font-size: 10px; color: #888; margin-top: 4px; }
+    .badge-item.locked { opacity: 0.35; filter: grayscale(1); }
+
+    .activity-log { list-style: none; }
+    .activity-log li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+      color: #444;
+    }
+    .activity-log li:last-child { border-bottom: none; }
+    .log-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* PROFILE */
+    .profile-hero {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .avatar {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      margin: 0 auto 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      border: 3px solid rgba(255,255,255,0.5);
+    }
+    .profile-name { font-size: 18px; font-weight: 700; }
+    .profile-role { font-size: 12px; opacity: 0.8; margin-top: 3px; }
+    .profile-badges { display: flex; justify-content: center; gap: 10px; margin-top: 14px; }
+    .p-badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 12px; font-size: 11px; }
+
+    .profile-edit input,
+    .profile-edit select {
+      width: 100%;
+      height: 40px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      padding: 0 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      color: #333;
+      outline: none;
+      margin-bottom: 10px;
+      background: #fff;
+      transition: border-color 0.2s;
+    }
+    .profile-edit input:focus,
+    .profile-edit select:focus { border-color: #7f77dd; }
+    .save-btn {
+      width: 100%;
+      height: 42px;
+      background: linear-gradient(135deg, #7f77dd, #534ab7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .save-btn:hover { opacity: 0.88; }
+
+    .settings-list { list-style: none; }
+    .settings-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+      color: #444;
+    }
+    .settings-list li:last-child { border-bottom: none; }
+    .settings-list .s-icon { font-size: 18px; margin-right: 10px; }
+    .toggle { width: 38px; height: 20px; background: #7f77dd; border-radius: 99px; position: relative; cursor: pointer; }
+    .toggle::after { content: ''; position: absolute; width: 14px; height: 14px; background: #fff; border-radius: 50%; top: 3px; right: 3px; transition: right 0.2s; }
+    .toggle.off { background: #ddd; }
+    .toggle.off::after { right: 21px; }
+
+    /* REFER */
+    .refer-hero {
+      background: linear-gradient(135deg, #f7971e, #ffd200);
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .refer-hero .ref-icon { font-size: 48px; margin-bottom: 8px; }
+    .refer-hero h2 { font-size: 20px; font-weight: 700; }
+    .refer-hero p  { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+
+    .ref-code-box {
+      background: #fff9e6;
+      border: 2px dashed #ffd200;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .ref-code-box .code-lbl { font-size: 11px; color: #888; margin-bottom: 6px; }
+    .ref-code-box .code     { font-size: 26px; font-weight: 700; color: #f7971e; letter-spacing: 4px; }
+    .ref-code-box .copy-btn {
+      margin-top: 10px;
+      padding: 7px 20px;
+      background: #f7971e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .ref-code-box .copy-btn:hover { opacity: 0.85; }
+
+    .how-it-works { list-style: none; counter-reset: step; }
+    .how-it-works li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 13px;
+      color: #555;
+    }
+    .how-it-works li:last-child { border-bottom: none; }
+    .how-it-works li::before {
+      content: counter(step);
+      background: #7f77dd;
+      color: #fff;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .reward-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .tier-card { border-radius: 14px; padding: 14px 10px; text-align: center; color: #fff; }
+    .tier-card .t-icon  { font-size: 26px; }
+    .tier-card .t-count { font-size: 18px; font-weight: 700; margin-top: 6px; }
+    .tier-card .t-lbl   { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+    .tier-bronze { background: linear-gradient(135deg,#cd7f32,#a0522d); }
+    .tier-silver { background: linear-gradient(135deg,#a8a8a8,#696969); }
+    .tier-gold   { background: linear-gradient(135deg,#f7971e,#ffd200); }
+
+    .leaderboard { list-style: none; }
+    .leaderboard li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+    .leaderboard li:last-child { border-bottom: none; }
+    .lb-rank { width: 24px; height: 24px; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #666; flex-shrink: 0; }
+    .lb-rank.gold   { background: #ffd200; color: #a06000; }
+    .lb-rank.silver { background: #d0d0d0; color: #555; }
+    .lb-rank.bronze { background: #cd9b72; color: #6b3a1f; }
+    .lb-name { flex: 1; color: #333; }
+    .lb-pts  { font-weight: 600; color: #7f77dd; font-size: 13px; }
+
+    /* QUOTES */
+    .quotes-header {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      border-radius: 20px;
+      padding: 22px 20px;
+      color: #fff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .quotes-header h2 { font-size: 18px; font-weight: 700; }
+
+    .q-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; color: #fff; position: relative; }
+    .q-card::before {
+      content: '"';
+      position: absolute;
+      top: 6px; left: 14px;
+      font-size: 60px;
+      opacity: 0.2;
+      font-family: Georgia, serif;
+      line-height: 1;
+    }
+    .q-card .q-text   { font-size: 14px; line-height: 1.7; font-style: italic; padding-top: 6px; }
+    .q-card .q-author { font-size: 12px; opacity: 0.8; margin-top: 10px; text-align: right; font-weight: 600; }
+    .q-purple { background: linear-gradient(135deg,#a18cd1,#7f77dd); }
+    .q-teal   { background: linear-gradient(135deg,#11998e,#38ef7d); }
+    .q-orange { background: linear-gradient(135deg,#fda843,#f0720e); }
+    .q-blue   { background: linear-gradient(135deg,#43b8f0,#1a7fc1); }
+    .q-pink   { background: linear-gradient(135deg,#f093fb,#c850c0); }
+    .q-red    { background: linear-gradient(135deg,#f5576c,#c0392b); }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">📖 Study<span>Manager</span></div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.8)" id="nav-date"></div>
+  </nav>
+
+  <!-- ══ HOME PAGE ══ -->
+  <div class="page active" id="page-home">
+
+    <div class="welcome-card">
+      <h2>Welcome back! 👋</h2>
+      <p>Stay consistent. Every task done is a step closer to your goal.</p>
+    </div>
+
+    <div class="quote-card">
+      <div class="q-text"   id="home-quote-text"></div>
+      <div class="q-author" id="home-quote-author"></div>
+    </div>
+
+    <div class="quick-stats">
+      <div class="qs-card qs-blue">
+        <div class="qs-val" id="qs-done">0</div>
+        <div class="qs-lbl">Tasks Done</div>
+      </div>
+      <div class="qs-card qs-green">
+        <div class="qs-val" id="qs-streak">0</div>
+        <div class="qs-lbl">Day Streak 🔥</div>
+      </div>
+      <div class="qs-card qs-orange">
+        <div class="qs-val" id="qs-total">0</div>
+        <div class="qs-lbl">Total Tasks</div>
+      </div>
+      <div class="qs-card qs-pink">
+        <div class="qs-val" id="qs-pct">0%</div>
+        <div class="qs-lbl">Completed</div>
+      </div>
+    </div>
+
+    <!-- ── REQUIREMENT #2: Progress sentence ── -->
+    <div class="progress-text-box">
+      <div class="pt-main" id="progress-sentence">0 out of 0 activities completed</div>
+      <div class="pt-sub"  id="progress-sub">Add tasks below to get started!</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-inner" id="progress-bar-inner" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📝 Today's Tasks</div>
+
+      <div class="reward-banner" id="reward-banner">
+        <div class="rw-title" id="reward-title"></div>
+        <div class="rw-sub"   id="reward-sub"></div>
+      </div>
+
+      <div class="quick-section">
+        <div class="quick-section-label">⚡ Quick Add</div>
+        <div class="quick-row">
+          <div class="quick-select-wrap">
+            <select id="quick-select">
+              <option value="">— Choose a quick task —</option>
+              <optgroup label="📐 Maths">
+                <option>📖 Read 1 chapter in Maths</option>
+                <option>✏️ Solve 10 Maths problems</option>
+                <option>📝 Revise Maths formulas</option>
+                <option>📄 Solve Maths past year Q. paper</option>
+              </optgroup>
+              <optgroup label="🔬 Science">
+                <option>📖 Read 1 chapter in Science</option>
+                <option>🧪 Revise Science diagrams</option>
+                <option>📄 Solve Science past year Q. paper</option>
+              </optgroup>
+              <optgroup label="📚 General Study">
+                <option>📋 Do homework</option>
+                <option>📄 Solve past year Q. paper</option>
+                <option>🔁 Revise today's notes</option>
+                <option>📝 Make flashcards</option>
+                <option>🧠 Practice MCQs</option>
+              </optgroup>
+              <optgroup label="🏃 Health & Focus">
+                <option>💧 Drink 1 glass of water</option>
+                <option>🚶 Take a 5-minute walk break</option>
+                <option>😴 Sleep by 10 PM tonight</option>
+                <option>🧘 10-minute mindfulness break</option>
+              </optgroup>
+              <optgroup label="📅 Planning">
+                <option>📅 Plan tomorrow's study schedule</option>
+                <option>✅ Review today's completed tasks</option>
+                <option>🎯 Set weekly study goal</option>
+              </optgroup>
+            </select>
+          </div>
+          <button class="quick-add-btn" id="quick-add-btn">+ Add</button>
+        </div>
+      </div>
+
+      <div class="or-divider"><span>or type your own</span></div>
+
+      <div class="add-row">
+        <input type="text" id="task-input" placeholder="Add a custom task..." maxlength="80" />
+        <button id="add-btn">+ Add</button>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div class="task-list" id="task-list">
+          <div class="empty-hint" id="empty-hint">No tasks yet — pick a quick task or add one above!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💡 Study Tips</div>
+      <ul class="tip-list">
+        <li><span class="tip-icon">⏱️</span>Use the Pomodoro technique — 25 min focus, 5 min break.</li>
+        <li><span class="tip-icon">📵</span>Put your phone on silent while studying.</li>
+        <li><span class="tip-icon">💧</span>Stay hydrated — your brain needs water to focus.</li>
+        <li><span class="tip-icon">🌙</span>Sleep at least 7–8 hours for better memory retention.</li>
+        <li><span class="tip-icon">✍️</span>Write notes by hand to improve understanding.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ══ DASHBOARD PAGE ══ -->
+  <div class="page" id="page-dash">
+
+    <div class="dash-header">
+      <h2>📊 Your Dashboard</h2>
+      <p>Track your learning progress at a glance</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Subject Progress</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Mathematics</span><span>72%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill fill-purple" style="width:72%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Science</span><span>58%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:58%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>English</span><span>85%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill fill-orange" style="width:85%"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>History</span><span>40%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill fill-purple" style="width:40%"></div></div>
+      </div>
+      <div class="progress-wrap" style="margin-bottom:0">
+        <div class="progress-label"><span>Computer Science</span><span>91%</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill fill-green" style="width:91%"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏅 Badges Earned</div>
+      <div class="badge-grid">
+        <div class="badge-item"><div>🎯</div><div class="b-lbl">Goal Setter</div></div>
+        <div class="badge-item"><div>🔥</div><div class="b-lbl">Streak 7</div></div>
+        <div class="badge-item"><div>⚡</div><div class="b-lbl">Speed Run</div></div>
+        <div class="badge-item locked"><div>🏆</div><div class="b-lbl">Champion</div></div>
+        <div class="badge-item locked"><div>💎</div><div class="b-lbl">Diamond</div></div>
+        <div class="badge-item"><div>📚</div><div class="b-lbl">Bookworm</div></div>
+        <div class="badge-item locked"><div>🌟</div><div class="b-lbl">All-Star</div></div>
+        <div class="badge-item"><div>✅</div><div class="b-lbl">Completer</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🕘 Recent Activity</div>
+      <ul class="activity-log">
+        <li><span class="log-dot" style="background:#7f77dd"></span>Completed "Practice JavaScript" — Today</li>
+        <li><span class="log-dot" style="background:#38ef7d"></span>Added 3 new tasks — Today</li>
+        <li><span class="log-dot" style="background:#fda843"></span>Reached 7-day streak — Yesterday</li>
+        <li><span class="log-dot" style="background:#f093fb"></span>Earned "Bookworm" badge — 2 days ago</li>
+        <li><span class="log-dot" style="background:#43b8f0"></span>Completed Science module — 3 days ago</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Weekly Study Hours</div>
+      <div style="display:flex;align-items:flex-end;gap:8px;height:80px;margin-top:8px;">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#7f77dd,#534ab7);border-radius:6px 6px 0 0;height:60%"></div>
+          <span style="font-size:10px;color:#888">Mon</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#38ef7d,#11998e);border-radius:6px 6px 0 0;height:80%"></div>
+          <span style="font-size:10px;color:#888">Tue</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#fda843,#f0720e);border-radius:6px 6px 0 0;height:45%"></div>
+          <span style="font-size:10px;color:#888">Wed</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#f093fb,#c850c0);border-radius:6px 6px 0 0;height:95%"></div>
+          <span style="font-size:10px;color:#888">Thu</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#43b8f0,#1a7fc1);border-radius:6px 6px 0 0;height:70%"></div>
+          <span style="font-size:10px;color:#888">Fri</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#7f77dd,#534ab7);border-radius:6px 6px 0 0;height:50%"></div>
+          <span style="font-size:10px;color:#888">Sat</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="flex:1;width:100%;background:linear-gradient(180deg,#f5576c,#c0392b);border-radius:6px 6px 0 0;height:30%"></div>
+          <span style="font-size:10px;color:#888">Sun</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ QUOTES PAGE ══ -->
+  <div class="page" id="page-quotes">
+    <div class="quotes-header">
+      <h2>✨ Motivational Quotes</h2>
+      <p style="font-size:12px;opacity:.85;margin-top:4px;">Fuel your study sessions daily</p>
+    </div>
+    <div class="q-card q-purple"><div class="q-text">"The secret of getting ahead is getting started."</div><div class="q-author">— Mark Twain</div></div>
+    <div class="q-card q-teal"><div class="q-text">"Education is the most powerful weapon which you can use to change the world."</div><div class="q-author">— Nelson Mandela</div></div>
+    <div class="q-card q-orange"><div class="q-text">"Success is the sum of small efforts, repeated day in and day out."</div><div class="q-author">— Robert Collier</div></div>
+    <div class="q-card q-blue"><div class="q-text">"The more that you read, the more things you will know."</div><div class="q-author">— Dr. Seuss</div></div>
+    <div class="q-card q-pink"><div class="q-text">"Don't watch the clock; do what it does. Keep going."</div><div class="q-author">— Sam Levenson</div></div>
+    <div class="q-card q-red"><div class="q-text">"Believe you can and you're halfway there."</div><div class="q-author">— Theodore Roosevelt</div></div>
+    <div class="q-card q-purple"><div class="q-text">"It always seems impossible until it's done."</div><div class="q-author">— Nelson Mandela</div></div>
+    <div class="q-card q-teal"><div class="q-text">"Push yourself, because no one else is going to do it for you."</div><div class="q-author">— Unknown</div></div>
+    <div class="q-card q-orange"><div class="q-text">"Great things never come from comfort zones."</div><div class="q-author">— Unknown</div></div>
+    <div class="q-card q-blue"><div class="q-text">"Dream it. Wish it. Do it."</div><div class="q-author">— Unknown</div></div>
+  </div>
+
+  <!-- ══ REFER & EARN PAGE ══ -->
+  <div class="page" id="page-refer">
+    <div class="refer-hero">
+      <div class="ref-icon">🎁</div>
+      <h2>Refer &amp; Earn</h2>
+      <p>Invite friends and earn exclusive study rewards together!</p>
+    </div>
+
+    <div class="ref-code-box">
+      <div class="code-lbl">YOUR REFERRAL CODE</div>
+      <div class="code" id="ref-code">STU-4829</div>
+      <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏆 Reward Tiers</div>
+      <div class="reward-tiers">
+        <div class="tier-card tier-bronze"><div class="t-icon">🥉</div><div class="t-count">1–2</div><div class="t-lbl">Referrals</div></div>
+        <div class="tier-card tier-silver"><div class="t-icon">🥈</div><div class="t-count">3–5</div><div class="t-lbl">Referrals</div></div>
+        <div class="tier-card tier-gold"><div class="t-icon">🥇</div><div class="t-count">6+</div><div class="t-lbl">Referrals</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 How It Works</div>
+      <ol class="how-it-works">
+        <li>Copy your unique referral code above.</li>
+        <li>Share it with your classmates and study friends.</li>
+        <li>They sign up using your code.</li>
+        <li>You both unlock bonus badges and streak boosters.</li>
+        <li>Climb the leaderboard as your referrals grow!</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🌟 Top Referrers</div>
+      <ul class="leaderboard">
+        <li><div class="lb-rank gold">1</div><span class="lb-name">Arjun S.</span><span class="lb-pts">12 refs</span></li>
+        <li><div class="lb-rank silver">2</div><span class="lb-name">Priya M.</span><span class="lb-pts">9 refs</span></li>
+        <li><div class="lb-rank bronze">3</div><span class="lb-name">Rohan K.</span><span class="lb-pts">7 refs</span></li>
+        <li><div class="lb-rank">4</div><span class="lb-name">Sneha T.</span><span class="lb-pts">5 refs</span></li>
+        <li><div class="lb-rank">5</div><span class="lb-name">You</span><span class="lb-pts">0 refs</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══ PROFILE PAGE ══ -->
+  <div class="page" id="page-profile">
+    <div class="profile-hero">
+      <div class="avatar">🎓</div>
+      <div class="profile-name" id="disp-name">Student Name</div>
+      <div class="profile-role" id="disp-role">Class 10 · Science Stream</div>
+      <div class="profile-badges">
+        <span class="p-badge">🔥 Streak: <span id="disp-streak">0</span></span>
+        <span class="p-badge">✅ Done: <span id="disp-done">0</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">✏️ Edit Profile</div>
+      <div class="profile-edit">
+        <input type="text" id="prof-name"   placeholder="Your name" />
+        <input type="text" id="prof-school" placeholder="School / College name" />
+        <select id="prof-class">
+          <option value="">Select your class</option>
+          <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+          <option>Class 9</option><option>Class 10</option><option>Class 11</option>
+          <option>Class 12</option><option>Undergraduate</option><option>Postgraduate</option>
+        </select>
+        <select id="prof-stream">
+          <option value="">Select stream</option>
+          <option>Science Stream</option><option>Commerce Stream</option>
+          <option>Arts Stream</option><option>Engineering</option><option>Medical</option><option>Other</option>
+        </select>
+        <button class="save-btn" onclick="saveProfile()">💾 Save Profile</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚙️ Settings</div>
+      <ul class="settings-list">
+        <li><span><span class="s-icon">🔔</span>Daily Reminders</span><div class="toggle" onclick="this.classList.toggle('off')"></div></li>
+        <li><span><span class="s-icon">🌙</span>Dark Mode</span><div class="toggle off" onclick="this.classList.toggle('off')"></div></li>
+        <li><span><span class="s-icon">📊</span>Show Progress Bar</span><div class="toggle" onclick="this.classList.toggle('off')"></div></li>
+        <li><span><span class="s-icon">🎵</span>Focus Music</span><div class="toggle off" onclick="this.classList.toggle('off')"></div></li>
+        <li><span><span class="s-icon">🔒</span>Private Profile</span><div class="toggle off" onclick="this.classList.toggle('off')"></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══ BOTTOM TAB BAR ══ -->
+  <nav class="bottom-tab">
+    <button class="tab-btn active" onclick="switchTab('home',this)"><span class="icon">🏠</span>Home</button>
+    <button class="tab-btn" onclick="switchTab('dash',this)"><span class="icon">📊</span>Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('quotes',this)"><span class="icon">✨</span>Quotes</button>
+    <button class="tab-btn" onclick="switchTab('refer',this)"><span class="icon">🎁</span>Refer</button>
+    <button class="tab-btn" onclick="switchTab('profile',this)"><span class="icon">👤</span>Profile</button>
+  </nav>
+
+  <script>
+
+    /* ══ REQUIREMENT #1: Preloaded activity list from JS array ══ */
+    const defaultActivities = [
+      { name: "📖 Read 1 chapter in Maths",        done: false },
+      { name: "✏️ Solve 10 Maths problems",         done: false },
+      { name: "🔬 Revise Science diagrams",          done: false },
+      { name: "📋 Complete today's homework",        done: false },
+      { name: "🔁 Revise yesterday's notes",         done: false },
+      { name: "🧠 Practice 10 MCQs",                done: false },
+      { name: "📅 Plan tomorrow's study schedule",   done: false },
+    ];
+
+    /* ══ TABS ══ */
+    function switchTab(id, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+      btn.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    /* ══ DATE ══ */
+    const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now    = new Date();
+    document.getElementById('nav-date').textContent =
+      days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()];
+
+    /* ══ ROTATING QUOTE ══ */
+    const quotes = [
+      { text: '"The secret of getting ahead is getting started."',               author: '— Mark Twain' },
+      { text: '"Success is the sum of small efforts, repeated day in and day out."', author: '— Robert Collier' },
+      { text: '"Don\'t watch the clock; do what it does. Keep going."',          author: '— Sam Levenson' },
+      { text: '"Believe you can and you\'re halfway there."',                    author: '— Theodore Roosevelt' },
+      { text: '"Push yourself, because no one else is going to do it for you."', author: '— Unknown' },
+    ];
+    const q = quotes[Math.floor(Math.random() * quotes.length)];
+    document.getElementById('home-quote-text').textContent   = q.text;
+    document.getElementById('home-quote-author').textContent = q.author;
+
+    /* ══ REQUIREMENT #3: Load tasks from localStorage, fallback to defaultActivities ══ */
+    let tasks = [];
+    let streak = 0;
+    let lastCompletedDate = null;
+
+    function loadFromStorage() {
+      try {
+        const saved = localStorage.getItem('sm_tasks');
+        const savedStreak = localStorage.getItem('sm_streak');
+        const savedDate   = localStorage.getItem('sm_lastDate');
+        tasks = saved ? JSON.parse(saved) : defaultActivities.map(a => ({ ...a }));
+        streak = savedStreak ? parseInt(savedStreak) : 0;
+        lastCompletedDate = savedDate || null;
+      } catch(e) {
+        tasks = defaultActivities.map(a => ({ ...a }));
+      }
+    }
+
+    function saveToStorage() {
+      try {
+        localStorage.setItem('sm_tasks',    JSON.stringify(tasks));
+        localStorage.setItem('sm_streak',   streak.toString());
+        localStorage.setItem('sm_lastDate', lastCompletedDate || '');
+      } catch(e) {}
+    }
+
+    /* ══ REWARDS ══ */
+    const rewards = [
+      { at: 1,  title: '🎉 First step taken!',  sub: 'Every journey begins with one task.' },
+      { at: 3,  title: '🚀 On a roll!',          sub: '3 tasks done — momentum is building.' },
+      { at: 5,  title: '⚡ Halfway hero!',        sub: '5 tasks cleared. Keep pushing!' },
+      { at: 10, title: '🏆 Perfect 10!',          sub: '10 tasks crushed. You\'re on fire.' },
+    ];
+    const shownRewards = new Set();
+
+    function getToday() { return new Date().toDateString(); }
+
+    function maybeUpdateStreak() {
+      const today = getToday();
+      if (lastCompletedDate === today) return;
+      if (lastCompletedDate) {
+        const diff = (new Date(today) - new Date(lastCompletedDate)) / (1000*60*60*24);
+        streak = diff <= 1 ? streak + 1 : 1;
+      } else { streak = 1; }
+      lastCompletedDate = today;
+    }
+
+    /* ══ REQUIREMENT #2 + STATS ══ */
+    function updateStats() {
+      const done  = tasks.filter(t => t.done).length;
+      const total = tasks.length;
+      const pct   = total ? Math.round(done / total * 100) : 0;
+
+      /* Exact sentence format required */
+      document.getElementById('progress-sentence').textContent =
+        done + ' out of ' + total + ' activities completed';
+      document.getElementById('progress-bar-inner').style.width = pct + '%';
+
+      if (total === 0) {
+        document.getElementById('progress-sub').textContent = 'Add tasks below to get started!';
+      } else if (done === total) {
+        document.getElementById('progress-sub').textContent = '🎉 All activities completed! Amazing work!';
+      } else {
+        document.getElementById('progress-sub').textContent = pct + '% done — keep going!';
+      }
+
+      document.getElementById('qs-done').textContent   = done;
+      document.getElementById('qs-total').textContent  = total;
+      document.getElementById('qs-streak').textContent = streak;
+      document.getElementById('qs-pct').textContent    = pct + '%';
+      document.getElementById('disp-streak').textContent = streak;
+      document.getElementById('disp-done').textContent   = done;
+    }
+
+    function render() {
+      const list = document.getElementById('task-list');
+      const hint = document.getElementById('empty-hint');
+      const done = tasks.filter(t => t.done).length;
+
+      updateStats();
+
+      rewards.forEach(r => {
+        if (done >= r.at && !shownRewards.has(r.at)) {
+          shownRewards.add(r.at);
+          const banner = document.getElementById('reward-banner');
+          document.getElementById('reward-title').textContent = r.title;
+          document.getElementById('reward-sub').textContent   = r.sub;
+          banner.classList.add('show');
+          setTimeout(() => banner.classList.remove('show'), 4000);
+        }
+      });
+
+      hint.style.display = tasks.length === 0 ? 'block' : 'none';
+      list.querySelectorAll('.task-item').forEach(e => e.remove());
+
+      tasks.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = 'task-item' + (t.done ? ' done' : '');
+
+        const chk = document.createElement('div');
+        chk.className = 'task-check' + (t.done ? ' checked' : '');
+        chk.addEventListener('click', () => {
+          if (!t.done) maybeUpdateStreak();
+          t.done = !t.done;
+          if (!t.done && tasks.filter(x => x.done).length === 0) {
+            streak = 0; lastCompletedDate = null;
+          }
+          saveToStorage(); /* ══ REQUIREMENT #3: Save on every change ══ */
+          render();
+        });
+
+        const name = document.createElement('span');
+        name.className = 'task-name' + (t.done ? ' done-text' : '');
+        name.textContent = t.name;
+
+        /* ══ REQUIREMENT #5: Pending / Completed status label ══ */
+        const statusLabel = document.createElement('span');
+        statusLabel.className = 'status-label ' + (t.done ? 'status-completed' : 'status-pending');
+        statusLabel.textContent = t.done ? 'Completed' : 'Pending';
+
+        const del = document.createElement('button');
+        del.className = 'del-btn';
+        del.innerHTML = '&times;';
+        del.addEventListener('click', () => {
+          tasks.splice(i, 1);
+          saveToStorage();
+          render();
+        });
+
+        item.appendChild(chk);
+        item.appendChild(name);
+        item.appendChild(statusLabel);
+        item.appendChild(del);
+        list.appendChild(item);
+      });
+    }
+
+    function addTask(name) {
+      const val = (name || '').trim();
+      if (!val) return;
+      tasks.push({ name: val, done: false });
+      saveToStorage();
+      render();
+    }
+
+    /* Custom input */
+    document.getElementById('add-btn').addEventListener('click', () => {
+      const inp = document.getElementById('task-input');
+      addTask(inp.value);
+      inp.value = '';
+    });
+    document.getElementById('task-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const inp = document.getElementById('task-input');
+        addTask(inp.value);
+        inp.value = '';
+      }
+    });
+
+    /* Quick dropdown */
+    document.getElementById('quick-add-btn').addEventListener('click', () => {
+      const sel = document.getElementById('quick-select');
+      const val = sel.value;
+      if (!val) {
+        sel.style.borderColor = '#f5576c';
+        setTimeout(() => sel.style.borderColor = '#afa9ec', 1000);
+        return;
+      }
+      addTask(val);
+      sel.value = '';
+    });
+
+    /* Profile save */
+    function saveProfile() {
+      const name   = document.getElementById('prof-name').value.trim()   || 'Student Name';
+      const school = document.getElementById('prof-school').value.trim();
+      const cls    = document.getElementById('prof-class').value;
+      const stream = document.getElementById('prof-stream').value;
+      document.getElementById('disp-name').textContent = name;
+      document.getElementById('disp-role').textContent =
+        (cls || 'Student') + (stream ? ' · ' + stream : '') + (school ? ' · ' + school : '');
+      localStorage.setItem('sm_profile', JSON.stringify({ name, school, cls, stream }));
+      alert('✅ Profile saved successfully!');
+    }
+
+    /* Load saved profile */
+    try {
+      const prof = JSON.parse(localStorage.getItem('sm_profile') || '{}');
+      if (prof.name) {
+        document.getElementById('prof-name').value   = prof.name;
+        document.getElementById('prof-school').value = prof.school || '';
+        document.getElementById('prof-class').value  = prof.cls    || '';
+        document.getElementById('prof-stream').value = prof.stream || '';
+        document.getElementById('disp-name').textContent = prof.name;
+        document.getElementById('disp-role').textContent =
+          (prof.cls || 'Student') + (prof.stream ? ' · ' + prof.stream : '') + (prof.school ? ' · ' + prof.school : '');
+      }
+    } catch(e) {}
+
+    /* Copy referral code */
+    function copyCode() {
+      const code = document.getElementById('ref-code').textContent;
+      navigator.clipboard.writeText(code).then(() => alert('✅ Code "' + code + '" copied!'));
+    }
+
+    /* ══ INIT ══ */
+    loadFromStorage();
+    render();
+
+  </script>
+</body>
+</html>
